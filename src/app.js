@@ -11,6 +11,18 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(morgan('dev'))
 app.use(cors())
 
+// import middleware
+const authMiddleware = require('./middleware/auth')
+const adminChecker = require('./middleware/adminChecker')
+
+// import routes
+const roleRoute = require('./routes/admin/roles')
+const authRoute = require('./routes/auth/auth')
+
+// app use for routes
+app.use('/roles', authMiddleware, adminChecker.admin, roleRoute)
+app.use('/auth', authRoute)
+
 app.get('/', (req, res) => {
   response(res, 'Welcome to esea backend!')
 })
