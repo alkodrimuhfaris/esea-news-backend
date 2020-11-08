@@ -5,7 +5,7 @@ const responseStandard = require('../helpers/response')
 module.exports = (field, imgCount = 8) => {
   return (req, res, next) => {
     // storage
-    const maxSize = process.env.MAX_FILE_SIZE * 1000 * 1024
+    const maxSize = process.env.MAX_FILE_SIZE * 1024
     const storage = multer.diskStorage({
       destination: (req, _file, cb) => {
         cb(null, './Assets/Public/Uploads')

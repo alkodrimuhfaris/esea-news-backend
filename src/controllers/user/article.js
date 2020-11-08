@@ -70,7 +70,6 @@ module.exports = {
     // destruct picture from req files
     const picture = req.file ? 'Uploads/' + req.file.filename : ''
     const { id: userId } = req.user
-
     // conditioning article parameter for article id
     let { id } = req.params
     if (!Number(id)) {
@@ -125,25 +124,98 @@ module.exports = {
     // get picture data
     const bodyGallery = req.file ? 'Uploads/' + req.file.filename : ''
     const { id: userId } = req.user
-    // conditioning article parameter forgallery article id
-    let { id } = req.params
-    if (!Number(id)) {
+
+    let { id, articleId } = req.params
+    if (!Number(id) || !Number(articleId)) {
       // delete the uploaded file
       bodyGallery && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + bodyGallery)
       return response(res, 'Id must be a number!', {}, 400, false)
     }
     id = Number(id)
+    articleId = Number(articleId)
     try {
+      const article = await Article.findOne({ where: { id: articleId, userId } })
+      if (!article) {
+        bodyGallery && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + bodyGallery)
+        return response(res, 'There is no article in here', {}, 400, false)
+      }
       const galleryPict = await ArticleGallery.findOne({ where: { id, userId } })
       if (!galleryPict) {
-        bodyGallery && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + bodyGallery)
-        return response(res, 'There is no picture in here', {}, 400, false)
+        const allGallery = await ArticleGallery.findAll({ where: { articleId, userId } })
+        if (!allGallery.length) {
+          await ArticleGallery.create({
+            articleId,
+            userId,
+            name: 'bodyGallery' + 0,
+            imageSrc: bodyGallery
+          })
+        } else if (allGallery.length >= 8) {
+          bodyGallery && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + bodyGallery)
+          return response(res, 'Picture is full', {}, 400, false)
+        } else {
+          await ArticleGallery.create({
+            articleId,
+            userId,
+            name: 'bodyGallery' + allGallery.length,
+            imageSrc: bodyGallery
+          })
+        }
+        return response(res, 'There is no picture in here, Gallery is added')
       }
       await galleryPict.update({ imageSrc: bodyGallery })
       galleryPict.dataValues.imageSrc && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + galleryPict.dataValues.imageSrc)
       return response(res, 'picture for article updated succesfully!')
     } catch (err) {
       bodyGallery && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + bodyGallery)
+      return response(res, err.message, { error: err.message }, 400, false)
+    }
+  },
+  updateGalleryImageBulk: async (req, res) => {
+    // get picture data
+    const bodyGallery = req.files.map(item => {
+      item = 'Uploads/' + item.filename
+      return item
+    })
+    const { id: userId } = req.user
+
+    let { id } = req.params
+    if (!Number(id)) {
+      // delete the uploaded file
+      bodyGallery.forEach(item => {
+        fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + item)
+      })
+      return response(res, 'Id must be a number!', {}, 400, false)
+    }
+    id = Number(id)
+    try {
+      const galleryPict = await ArticleGallery.findAll({ where: { articleId: id, userId } })
+      const article = await Article.findOne({ where: { id } })
+      if (!article) {
+        bodyGallery.forEach(item => {
+          fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + item)
+        })
+        return response(res, 'There is no article in here!', {}, 400, false)
+      }
+      for (const [index, imageSrc] of bodyGallery.entries()) {
+        if (!imageSrc) {
+          continue
+        } else if (galleryPict[index]) {
+          await galleryPict[index].update({ imageSrc })
+          fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + galleryPict[index].dataValues.imageSrc)
+        } else {
+          await ArticleGallery.create({
+            articleId: id,
+            userId,
+            name: 'bodyGallery' + index,
+            imageSrc
+          })
+        }
+      }
+      return response(res, 'picture for article updated succesfully!')
+    } catch (err) {
+      bodyGallery.forEach(item => {
+        fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + item)
+      })
       return response(res, err.message, { error: err.message }, 400, false)
     }
   },
@@ -162,6 +234,29 @@ module.exports = {
       await galleryPict.destroy()
       galleryPict.dataValues.imageSrc && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + galleryPict.dataValues.imageSrc)
       return response(res, 'gallery image deleted succesfully')
+    } catch (err) {
+      return response(res, err.message, { error: err.message }, 400, false)
+    }
+  },
+  deleteGalleryImageBulk: async (req, res) => {
+    // get picture data
+    const { id: userId } = req.user
+
+    let { id } = req.params
+    if (!Number(id)) {
+      return response(res, 'Id must be a number!', {}, 400, false)
+    }
+    id = Number(id)
+    try {
+      const galleryPict = await ArticleGallery.findAll({ where: { articleId: id, userId } })
+      if (!galleryPict.length) {
+        return response(res, 'There are no article gallery in here!', {}, 400, false)
+      }
+      for (const item of galleryPict) {
+        await item.destroy()
+        fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + item.imageSrc)
+      }
+      return response(res, 'picture for article deleted succesfully!')
     } catch (err) {
       return response(res, err.message, { error: err.message }, 400, false)
     }
