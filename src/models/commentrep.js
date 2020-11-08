@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      CommentRep.hasMany(models.CommentRepLike, { foreignKey: 'commentRepId', onDelete: 'CASCADE', hooks: true, onUpdate: 'CASCADE' })
     }
   };
   CommentRep.init({

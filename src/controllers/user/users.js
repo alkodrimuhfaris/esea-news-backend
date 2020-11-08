@@ -19,7 +19,7 @@ module.exports = {
     } = req.body
 
     // get data from multer middleware
-    const avatar = req.file ? 'Upload/' + req.file.filename : undefined
+    const avatar = req.file ? 'Uploads/' + req.file.filename : undefined
 
     const data = {
       name, username, birthdate, email, phone, avatar
@@ -50,9 +50,9 @@ module.exports = {
       if (updateData.email) {
         Object.assign(updateData, { emailverif: false })
       }
-
-      const update = await userCheck.update(updateData)
       userCheck.dataValues.avatar && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + userCheck.dataValues.avatar)
+      const update = await userCheck.update(updateData)
+      delete update.dataValues.password
       return response(res, 'user updated successfully!', { update }, 200, true)
     } catch (err) {
       avatar && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + avatar)
@@ -91,8 +91,8 @@ module.exports = {
       if (!result) {
         return response(res, 'user not found', {}, 404, false)
       }
-      await result.destroy()
       result.dataValues.avatar && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + result.dataValues.avatar)
+      await result.destroy()
       return response(res, 'user deleted successfully', { result })
     } catch (err) {
       return response(res, err.message, { err }, 500, false)
