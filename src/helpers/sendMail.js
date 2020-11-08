@@ -14,14 +14,16 @@ module.exports = {
     })
 
     const options = {
-      from: 'teamtukuofficial@gmail.com',
+      from: 'eseamailer@gmail.com',
       to: email,
-      subject: 'Here Your Password Reset',
-      html: `<h1>Hello ${name} this is your reset code</h1>
-                   <h4>${resetcode}</h4>
-                   <p>Did you request to reset your password?</p>
-                   <p>Ignore it if you dont request it, maybe you can try to change your password if you fill
-                   something suspicious activity in your account</p>`
+      subject: 'eSea password reset confirmation',
+      html: `<p>Hello ${name}</p>
+                  <p>There was recently a request to change the password on your account</p>  
+                  <p>This is the code to reset your password</p>  
+                  <h4>${resetcode}</h4>
+                  <p>Keep this code secret</p>
+                  <p>Ignore it if you dont request it, maybe you can try to change your password if you feel
+                  any suspicious activity in your account</p>`
     }
 
     return new Promise((resolve, reject) => {
@@ -47,12 +49,12 @@ module.exports = {
     })
 
     const options = {
-      from: 'teamtukuofficial@gmail.com',
+      from: 'eseamailer@gmail.com',
       to: email,
       subject: 'Here Your Password Reset',
       html: `<h1>Hello ${name} this is your email verification code</h1>
                    <h4>${resetcode}</h4>
-                   <p>use this code to verify your email address, keep subscribes our news!</p>
+                   <p>Use this code to verify your email address, subscribes to our newsfeed!</p>
                    <h4>eSea easy!</h4>`
     }
 
