@@ -24,6 +24,7 @@ const articleRoute = require('./routes/user/article')
 const categoryRoute = require('./routes/admin/category')
 const publicRoute = require('./routes/public')
 const commentUser = require('./routes/user/comment')
+const reactionUser = require('./routes/user/like')
 
 // app use for routes
 app.use('/roles', authMiddleware, adminChecker.admin, roleRoute)
@@ -33,7 +34,8 @@ app.use('/manage/user', authMiddleware, adminChecker.admin, manageUser)
 app.use('/user/article', authMiddleware, articleRoute)
 app.use('/manage/category', authMiddleware, categoryRoute)
 app.use('/public', publicRoute)
-app.use('/comment', commentUser)
+app.use('/comment', authMiddleware, commentUser)
+app.use('/reaction', authMiddleware, reactionUser)
 
 // image for public
 app.use('/Uploads', express.static('./Assets/Public/Uploads'))
