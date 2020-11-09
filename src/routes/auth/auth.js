@@ -14,7 +14,7 @@ route.post('/user/forgot/reset', authCtlUser.resetPassword)
 // admin
 route.post('/admin/signup', authMiddleware, adminChecker.admin, authCtlAdmin.signup)
 route.post('/admin/login', authCtlAdmin.login)
-route.post('/admin/forgot/password', authCtlUser.sendReset)
-route.post('/admin/forgot/reset', authCtlUser.resetPassword)
+route.post('/admin/forgot/password', authCtlAdmin.sendReset)
+route.post('/admin/forgot/reset', authCtlAdmin.resetPassword)
 
 module.exports = route

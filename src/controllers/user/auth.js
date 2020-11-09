@@ -124,9 +124,9 @@ module.exports = {
       resetcode = resetcode.slice(resetcode.length - 8).toUpperCase()
 
       const result = await sendMail.sendReset(name, email, resetcode)
-
-      console.log(result)
-
+      if (result.rejected.length) {
+        return response(res, 'Error occured when sending reset code', {}, 500, false)
+      }
       await user.update({ resetcode })
       return response(res, 'Reset code sent successfully')
     } catch (err) {

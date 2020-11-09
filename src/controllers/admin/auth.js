@@ -4,6 +4,7 @@ const joi = require('joi')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const { v4: uuidv4 } = require('uuid')
+const sendMail = require('../../helpers/sendMail')
 
 module.exports = {
   signup: async (req, res) => {
@@ -107,6 +108,60 @@ module.exports = {
       return response(res, 'Login Success!', { token })
     } catch (err) {
       return response(res, 'Error', { error: err.message }, 400, false)
+    }
+  },
+  sendReset: async (req, res) => {
+    const schema = joi.object({
+      email: joi.string().required()
+    })
+    const { value: emailData, error } = schema.validate(req.body)
+    if (error) {
+      return response(res, error.message, {}, 400, false)
+    }
+    try {
+      const user = await Users.findOne({ where: emailData })
+      if (!user) {
+        return response(res, 'Email not found!', {}, 400, false)
+      }
+      const { name, email } = user.dataValues
+      const resetcode = uuidv4()
+
+      const result = await sendMail.sendReset(name, email, resetcode)
+      if (result.rejected.length) {
+        return response(res, 'Error occured when sending reset code', {}, 500, false)
+      }
+      await user.update({ resetcode })
+      return response(res, 'Reset code sent successfully')
+    } catch (err) {
+      return response(res, error.message, {}, 500, false)
+    }
+  },
+  resetPassword: async (req, res) => {
+    const schema = joi.object({
+      email: joi.string().email(),
+      resetcode: joi.string(),
+      newPassword: joi.string(),
+      confirmNewPassword: joi.string().required().valid(joi.ref('newPassword'))
+    })
+    const { value: resetData, error } = schema.validate(req.body)
+    if (error) {
+      return response(res, error.message, {}, 400, false)
+    }
+    const { email, resetcode, newPassword } = resetData
+    try {
+      const user = await Users.findOne({ where: { email } })
+      if (!user) {
+        return response(res, 'Wrong reset code!', {}, 400, false)
+      }
+      if (resetcode !== user.dataValues.resetcode || !user.dataValues.resetcode) {
+        return response(res, 'Wrong reset code!', {}, 400, false)
+      }
+      const password = await bcrypt.hash(newPassword, 10)
+
+      await user.update({ password, resetcode: null })
+      return response(res, 'Password reset succesfully!')
+    } catch (err) {
+      return response(res, error.message, {}, 500, false)
     }
   }
 }

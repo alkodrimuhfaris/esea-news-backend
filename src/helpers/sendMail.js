@@ -36,7 +36,7 @@ module.exports = {
       })
     })
   },
-  verifyEmail: (name, email, resetcode) => {
+  verifyEmail: (name, email, emailcode) => {
     const connection = sendMail.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
@@ -51,10 +51,11 @@ module.exports = {
     const options = {
       from: 'eseamailer@gmail.com',
       to: email,
-      subject: 'Here Your Password Reset',
-      html: `<h1>Hello ${name} this is your email verification code</h1>
-                   <h4>${resetcode}</h4>
-                   <p>Use this code to verify your email address, subscribes to our newsfeed!</p>
+      subject: 'eSea email verification',
+      html: `<p>Hello ${name} this is your email verification code</p>
+                   <h4>${emailcode}</h4>
+                   <p>Use this code to verify your email address</p>
+                   <p>Subscribes to our newsfeed!</p>
                    <h4>eSea easy!</h4>`
     }
 

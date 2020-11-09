@@ -3,6 +3,8 @@ const response = require('../../helpers/response')
 const joi = require('joi')
 const bcrypt = require('bcryptjs')
 const fs = require('fs')
+const { v4: uuidv4 } = require('uuid')
+const sendMail = require('../../helpers/sendMail')
 
 const {
   PUBLIC_UPLOAD_FOLDER
@@ -45,15 +47,23 @@ module.exports = {
       if (!userCheck) {
         return response(res, 'User not found!', {}, 500, false)
       }
-
       // change status email to be unverified
+      let msg = 'Profile updated successfully!'
       if (updateData.email) {
-        Object.assign(updateData, { emailverif: false })
+        let emailcode = uuidv4()
+        emailcode = emailcode.slice(emailcode.length - 6).toUpperCase()
+        const result = await sendMail.verifyEmail(name, email, emailcode)
+        if (result.rejected.length) {
+          return response(res, 'Error occured when sending verification code', {}, 500, false)
+        }
+        Object.assign(updateData, { emailverif: false, emailcode })
+        msg = 'Profile updated successfully! Verification code sent to your new email'
       }
-      userCheck.dataValues.avatar && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + userCheck.dataValues.avatar)
+      avatar && userCheck.dataValues.avatar && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + userCheck.dataValues.avatar)
       const update = await userCheck.update(updateData)
       delete update.dataValues.password
-      return response(res, 'user updated successfully!', { update }, 200, true)
+      delete update.dataValues.emailcode
+      return response(res, msg, { update }, 200, true)
     } catch (err) {
       avatar && fs.unlinkSync(PUBLIC_UPLOAD_FOLDER + avatar)
       if (err.message === 'Validation error') {
@@ -132,6 +142,51 @@ module.exports = {
       return response(res, 'Password updated succesfully!')
     } catch (err) {
       return response(res, err.message, { err }, 500, false)
+    }
+  },
+  sendVerifyEmail: async (req, res) => {
+    const { id } = req.user
+    try {
+      const user = await Users.findByPk(id)
+      if (!user) {
+        return response(res, 'User Not Found!', {}, 400, false)
+      }
+      const { name, email } = user.dataValues
+      let emailcode = uuidv4()
+      emailcode = emailcode.slice(emailcode.length - 6).toUpperCase()
+
+      const result = await sendMail.verifyEmail(name, email, emailcode)
+      if (result.rejected.length) {
+        return response(res, 'Error occured when sending verification code', {}, 500, false)
+      }
+      await user.update({ emailcode })
+      return response(res, 'verification code sent successfully')
+    } catch (err) {
+      return response(res, err.message, {}, 500, false)
+    }
+  },
+  verifyEmail: async (req, res) => {
+    const { id } = req.user
+    const schema = joi.object({
+      emailcode: joi.string()
+    })
+    const { value: resetData, error } = schema.validate(req.body)
+    if (error) {
+      return response(res, error.message, {}, 400, false)
+    }
+    const { emailcode } = resetData
+    try {
+      const user = await Users.findByPk(id)
+      if (!user) {
+        return response(res, 'Wrong reset code!', {}, 400, false)
+      }
+      if (emailcode !== user.dataValues.emailcode || !user.dataValues.emailcode) {
+        return response(res, 'Wrong verification code!', {}, 400, false)
+      }
+      await user.update({ emailverif: true, emailcode: null })
+      return response(res, 'Email verified succesfully!')
+    } catch (err) {
+      return response(res, error.message, {}, 500, false)
     }
   }
 }

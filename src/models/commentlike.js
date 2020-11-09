@@ -16,7 +16,11 @@ module.exports = (sequelize, DataTypes) => {
   CommentLike.init({
     commentId: DataTypes.INTEGER,
     userId: DataTypes.INTEGER,
-    reaction: DataTypes.STRING
+    like: DataTypes.BOOLEAN,
+    love: DataTypes.BOOLEAN,
+    fine: DataTypes.BOOLEAN,
+    angry: DataTypes.BOOLEAN,
+    dislike: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'CommentLike',
