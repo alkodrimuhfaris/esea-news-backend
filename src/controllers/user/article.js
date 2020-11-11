@@ -1,10 +1,11 @@
-const { Article } = require('../../models')
+const { Article, Users, Category } = require('../../models')
 const { ArticleGallery } = require('../../models')
 const joi = require('joi')
 const response = require('../../helpers/response')
 const fs = require('fs')
 const queryMaker = require('../../helpers/queryMaker')
 const pagination = require('../../helpers/pagination')
+const sequelize = require('sequelize')
 
 const { PUBLIC_UPLOAD_FOLDER } = process.env
 
@@ -313,7 +314,37 @@ module.exports = {
     }
     id = Number(id)
     try {
-      const article = await Article.findOne({ where: { id } })
+      const article = await Article.findOne({
+        where: { id },
+        attributes: {
+          include: [
+            sequelize.literal(`(
+              SELECT SUBSTRING(article, 0, 150) AS articleSpoiler,
+                     ((CHAR_LENGTH(article) - CHAR_LENGTH(REPLACE(article,' ',''))/200) 
+                     AS DOUBLE(10,2)) AS estimationReadTime
+              FROM Articles
+              )`
+            )
+          ]
+        },
+        include: [
+          {
+            model: Users,
+            as: 'Author',
+            attributes: [
+              'name'
+            ]
+          },
+          {
+            model: Category,
+            attributes: [
+              'categoryPicture',
+              'categoryName'
+            ]
+          }
+        ]
+
+      })
       const galleryBody = await ArticleGallery.findAll({ where: { articleId: id } })
       if (!article) {
         return response(res, 'There is no article in here', {}, 400, false)
@@ -351,7 +382,34 @@ module.exports = {
         ({ count, rows: results } = await Article.findAndCountAll({
           order,
           where,
-          attributes: { exclude: ['article'] }
+          attributes: {
+            exclude: ['article'],
+            include: [
+              [sequelize.literal(`(
+                SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
+                )`
+              ), 'articleSpoiler'],
+              [sequelize.literal(`(
+                SELECT ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
+                )`), 'estimationReadTime']
+            ]
+          },
+          include: [
+            {
+              model: Users,
+              as: 'Author',
+              attributes: [
+                'name'
+              ]
+            },
+            {
+              model: Category,
+              attributes: [
+                'categoryPicture',
+                'categoryName'
+              ]
+            }
+          ]
         }))
       } else {
         ({ count, rows: results } = await Article.findAndCountAll({
@@ -359,7 +417,34 @@ module.exports = {
           offset,
           order,
           where,
-          attributes: { exclude: ['article'] }
+          attributes: {
+            exclude: ['article'],
+            include: [
+              sequelize.literal(`(
+                SELECT SUBSTRING(article, 0, 150) AS articleSpoiler,
+                       (CAST((CHAR_LENGTH(article) - CHAR_LENGTH(REPLACE(article,' ',''))/200)
+                           AS DOUBLE(10,2)) AS estimationReadTime
+                FROM Articles
+                )`
+              )
+            ]
+          },
+          include: [
+            {
+              model: Users,
+              as: 'Author',
+              attributes: [
+                'name'
+              ]
+            },
+            {
+              model: Category,
+              attributes: [
+                'categoryPicture',
+                'categoryName'
+              ]
+            }
+          ]
         }))
       }
       const pageInfo = pagination.paging(path, req, count, page, limit)
@@ -382,7 +467,33 @@ module.exports = {
         ({ count, rows: results } = await Article.findAndCountAll({
           order,
           where,
-          attributes: { exclude: ['article'] }
+          attributes: {
+            include: [
+              [sequelize.literal(`(
+                SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
+                )`
+              ), 'articleSpoiler'],
+              [sequelize.literal(`(
+                SELECT ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
+                )`), 'estimationReadTime']
+            ]
+          },
+          include: [
+            {
+              model: Users,
+              as: 'Author',
+              attributes: [
+                'name'
+              ]
+            },
+            {
+              model: Category,
+              attributes: [
+                'categoryPicture',
+                'categoryName'
+              ]
+            }
+          ]
         }))
       } else {
         ({ count, rows: results } = await Article.findAndCountAll({
@@ -390,7 +501,33 @@ module.exports = {
           offset,
           order,
           where,
-          attributes: { exclude: ['article'] }
+          attributes: {
+            include: [
+              [sequelize.literal(`(
+                  SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
+                  )`
+              ), 'articleSpoiler'],
+              [sequelize.literal(`(
+                  SELECT ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
+                  )`), 'estimationReadTime']
+            ]
+          },
+          include: [
+            {
+              model: Users,
+              as: 'Author',
+              attributes: [
+                'name'
+              ]
+            },
+            {
+              model: Category,
+              attributes: [
+                'categoryPicture',
+                'categoryName'
+              ]
+            }
+          ]
         }))
       }
       const pageInfo = pagination.paging(path, req, count, page, limit)
@@ -425,7 +562,34 @@ module.exports = {
         ({ count, rows: results } = await Article.findAndCountAll({
           order,
           where,
-          attributes: { exclude: ['article'] }
+          attributes: {
+            exclude: ['article'],
+            include: [
+              [sequelize.literal(`(
+                SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
+                )`
+              ), 'articleSpoiler'],
+              [sequelize.literal(`(
+                SELECT ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
+                )`), 'estimationReadTime']
+            ]
+          },
+          include: [
+            {
+              model: Users,
+              as: 'Author',
+              attributes: [
+                'name'
+              ]
+            },
+            {
+              model: Category,
+              attributes: [
+                'categoryPicture',
+                'categoryName'
+              ]
+            }
+          ]
         }))
       } else {
         ({ count, rows: results } = await Article.findAndCountAll({
@@ -433,7 +597,34 @@ module.exports = {
           offset,
           order,
           where,
-          attributes: { exclude: ['article'] }
+          attributes: {
+            exclude: ['article'],
+            include: [
+              [sequelize.literal(`(
+                SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
+                )`
+              ), 'articleSpoiler'],
+              [sequelize.literal(`(
+                SELECT ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
+                )`), 'estimationReadTime']
+            ]
+          },
+          include: [
+            {
+              model: Users,
+              as: 'Author',
+              attributes: [
+                'name'
+              ]
+            },
+            {
+              model: Category,
+              attributes: [
+                'categoryPicture',
+                'categoryName'
+              ]
+            }
+          ]
         }))
       }
       const pageInfo = pagination.paging(path, req, count, page, limit)

@@ -1,4 +1,4 @@
-const { Category } = require('../../models')
+const { Category, Users } = require('../../models')
 const joi = require('joi')
 const response = require('../../helpers/response')
 const fs = require('fs')
@@ -163,7 +163,34 @@ module.exports = {
           ({ count, rows: articles } = await Article.findAndCountAll({
             order,
             where,
-            attributes: { exclude: ['article'] }
+            attributes: {
+              exclude: ['article'],
+              include: [
+                sequelize.literal(`(
+                  SELECT SUBSTRING(article, 0, 150) AS articleSpoiler,
+                         ((CHAR_LENGTH(article) - CHAR_LENGTH(REPLACE(article,' ',''))/200) 
+                         AS DOUBLE(10,2)) AS estimationReadTime
+                  FROM Articles
+                  )`
+                )
+              ]
+            },
+            include: [
+              {
+                model: Users,
+                as: 'Author',
+                attributes: [
+                  'name'
+                ]
+              },
+              {
+                model: Category,
+                attributes: [
+                  'categoryPicture',
+                  'categoryName'
+                ]
+              }
+            ]
           }))
         } else {
           ({ count, rows: articles } = await Article.findAndCountAll({
@@ -171,7 +198,34 @@ module.exports = {
             offset,
             order,
             where,
-            attributes: { exclude: ['article'] }
+            attributes: {
+              exclude: ['article'],
+              include: [
+                sequelize.literal(`(
+                  SELECT SUBSTRING(article, 0, 150) AS articleSpoiler,
+                         ((CHAR_LENGTH(article) - CHAR_LENGTH(REPLACE(article,' ',''))/200) 
+                         AS DOUBLE(10,2)) AS estimationReadTime
+                  FROM Articles
+                  )`
+                )
+              ]
+            },
+            include: [
+              {
+                model: Users,
+                as: 'Author',
+                attributes: [
+                  'name'
+                ]
+              },
+              {
+                model: Category,
+                attributes: [
+                  'categoryPicture',
+                  'categoryName'
+                ]
+              }
+            ]
           }))
         }
       }

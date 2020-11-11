@@ -17,6 +17,8 @@ module.exports = (sequelize, DataTypes) => {
       Article.hasMany(models.ArticleGallery, { foreignKey: 'articleId', onDelete: 'CASCADE', hooks: true, onUpdate: 'CASCADE' })
       Article.hasMany(models.Comment, { foreignKey: 'articleId', onDelete: 'CASCADE', hooks: true, onUpdate: 'CASCADE' })
       Article.hasMany(models.Like, { foreignKey: 'articleId', onDelete: 'CASCADE', hooks: true, onUpdate: 'CASCADE' })
+      Article.belongsTo(models.Category, { foreignKey: 'categoryId' })
+      Article.belongsTo(models.Users, { as: 'Author', foreignKey: 'userId' })
     }
   };
   Article.init({
