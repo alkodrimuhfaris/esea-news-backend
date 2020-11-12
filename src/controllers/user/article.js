@@ -505,11 +505,11 @@ module.exports = {
             exlude: ['article'],
             include: [
               [sequelize.literal(`(
-                  SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
+                  SELECT Article.id, SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
                   )`
               ), 'articleSpoiler'],
               [sequelize.literal(`(
-                  SELECT ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
+                  SELECT Article.id, ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
                   )`), 'estimationReadTime']
             ]
           },
