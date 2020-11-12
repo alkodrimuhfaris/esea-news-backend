@@ -467,7 +467,7 @@ module.exports = {
           order,
           where,
           attributes: {
-            exlude: ['article'],
+            exclude: ['article'],
             include: [
               [sequelize.literal(`(
                 SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
@@ -502,7 +502,7 @@ module.exports = {
           order,
           where,
           attributes: {
-            exlude: ['article'],
+            exclude: ['article'],
             include: [
               [sequelize.literal(`(
                   SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
