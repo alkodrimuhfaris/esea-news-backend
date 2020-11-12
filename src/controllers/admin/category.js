@@ -166,13 +166,13 @@ module.exports = {
             attributes: {
               exclude: ['article'],
               include: [
-                sequelize.literal(`(
-                  SELECT SUBSTRING(article, 0, 150) AS articleSpoiler,
-                         ((CHAR_LENGTH(article) - CHAR_LENGTH(REPLACE(article,' ',''))/200) 
-                         AS DOUBLE(10,2)) AS estimationReadTime
-                  FROM Articles
+                [sequelize.literal(`(
+                  SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
                   )`
-                )
+                ), 'articleSpoiler'],
+                [sequelize.literal(`(
+                  SELECT ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
+                  )`), 'estimationReadTime']
               ]
             },
             include: [
@@ -201,13 +201,13 @@ module.exports = {
             attributes: {
               exclude: ['article'],
               include: [
-                sequelize.literal(`(
-                  SELECT SUBSTRING(article, 0, 150) AS articleSpoiler,
-                         ((CHAR_LENGTH(article) - CHAR_LENGTH(REPLACE(article,' ',''))/200) 
-                         AS DOUBLE(10,2)) AS estimationReadTime
-                  FROM Articles
-                  )`
-                )
+                [sequelize.literal(`(
+                SELECT SUBSTRING(article, 1, 200) AS articleSpoiler FROM Articles GROUP BY Article.id
+                )`
+                ), 'articleSpoiler'],
+                [sequelize.literal(`(
+                SELECT ROUND((LENGTH(article)-LENGTH(REPLACE(article,' ','')))/200, 1) FROM Articles GROUP BY Article.id
+                )`), 'estimationReadTime']
               ]
             },
             include: [
