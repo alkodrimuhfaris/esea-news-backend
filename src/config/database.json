@@ -3,21 +3,21 @@
     "username": "root",
     "password": "kodri123",
     "database": "eseanews_development",
-    "host": "52.200.32.180",
+    "host": "54.147.22.87",
     "dialect": "mysql"
   },
   "test": {
     "username": "root",
     "password": "kodri123",
     "database": "eseanews_test",
-    "host": "52.200.32.180",
+    "host": "54.147.22.87",
     "dialect": "mysql"
   },
   "production": {
     "username": "root",
     "password": "kodri123",
     "database": "eseanews_production",
-    "host": "52.200.32.180",
+    "host": "54.147.22.87",
     "dialect": "mysql"
   }
 }
