@@ -339,7 +339,7 @@ module.exports = {
             ]
           },
           {
-            model: Comment,
+            model: Comment
           }
         ]
 
